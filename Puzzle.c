@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
         int len = strlen(buffer);
 
         if(len < 4) {
-            printf("Notice that your file contains a number of less than 4 digits, it was skiped during the process");
+            printf("Notice that your file contains a number of less than 4 digits, it was skiped during the process\n");
             continue;
         }
 
@@ -77,9 +77,14 @@ int main(int argc, char *argv[]) {
 
     fclose(file);
 
-    free(fragments); // Обов'язково додайте в кінці!
-    return 0;
+    
+printf("Loaded %d fragments:\n", count);
+for (int i = 0; i < count; i++) {
+    printf("[%d] Full: %s | Start: %s | End: %s\n", fragments[i].id, fragments[i].full, fragments[i].start, fragments[i].end);
+}
 
+free(fragments);
 
+return 0;
 
 }
