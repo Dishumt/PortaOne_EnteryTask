@@ -11,6 +11,9 @@ typedef struct {
 } Fragment;
 
 Fragment* load_fragments(const char *filename, int *out_count);
+void do_puzzle(Fragment *fragments, int count, int *best_chain, int *out_max_len);
+void dfs(Fragment *fragments, int count, int current_id, int *current_chain, int current_len, 
+         int *best_chain, int *max_len);
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -27,16 +30,26 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    printf("Loaded %d fragments:\n", count);
-    for (int i = 0; i < count; i++) {
-        printf("[%d] Full: %s | Start: %s | End: %s\n", 
-               fragments[i].id, fragments[i].full, fragments[i].start, fragments[i].end);
+
+    int *best_chain = (int *)malloc(count * sizeof(int));
+    int max_len = 0;
+
+    do_puzzle(fragments, count, best_chain, &max_len);
+
+    printf("Found longest chain of length %d!\n", max_len);
+    for (int i = 0; i < max_len; i++) {
+        int id = best_chain[i];
+        printf("%s ", fragments[id].full);
     }
+    printf("\n");
 
+    free(best_chain);
     free(fragments);
-
+    printf("Loaded %d fragments successfully.\n", count);
     return 0;
 }
+
+
 
 
 Fragment* load_fragments(const char *filename, int *out_count) {
@@ -104,4 +117,63 @@ Fragment* load_fragments(const char *filename, int *out_count) {
     *out_count = count;
 
     return fragments;
+}
+
+void do_puzzle(Fragment *fragments, int count, int *best_chain, int *out_max_len) {
+    if (count == 0) {
+        *out_max_len = 0;
+        return;
+    }
+
+    int *current_chain = (int *)malloc(count * sizeof(int));
+    if (current_chain == NULL) {
+        printf("Error: Memory allocation failed in do_puzzle\n");
+        *out_max_len = 0;
+        return;
+    }
+
+    int max_len = 0;
+
+    for (int i = 0; i < count; i++) {
+        fragments[i].used = 1;
+        current_chain[0] = i;
+        dfs(fragments, count, i, current_chain, 1, best_chain, &max_len);
+
+        fragments[i].used = 0;
+    }
+
+    *out_max_len = max_len;
+
+    free(current_chain);
+}
+    /*У нас є масив масивів чисел з їх порядковим номером,
+    першими/останніми двома цифрами, повним числом та прапором використане число чи ні */ 
+
+    /*Тепер потрібно зробити цикл, що  та роблячи розгалуження там, де є 2+ варіанти,
+     перше розгалуження це спроба обрати як перший елемент кожне з чисел, у ході цього створюються "рекорди"  */
+
+
+void dfs(Fragment *fragments, int count, int current_id, int *current_chain, int current_len, 
+         int *best_chain, int *max_len) { 
+
+        if (current_len > *max_len) {
+            *max_len = current_len;
+            for (int i = 0; i < current_len; i++) {
+                best_chain[i] = current_chain[i]; 
+            }
+        }
+
+        for (int i = 0; i < count; i++) {
+            if (fragments[i].used == 0 && strcmp(fragments[i].start, fragments[current_id].end) == 0) {
+                
+                fragments[i].used = 1;
+                current_chain[current_len] = i;
+
+                dfs(fragments, count, i, current_chain, current_len + 1, best_chain, max_len);
+
+                fragments[i].used = 0;
+            }
+    }
+
+
 }
