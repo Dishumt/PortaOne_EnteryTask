@@ -15,11 +15,16 @@ typedef struct {
 } Fragment;
 
 Fragment* load_fragments(const char *filename, int *out_count);
+
 void do_puzzle(Fragment *fragments, int count, int *best_chain, int *out_max_len);
+
 void dfs(Fragment *fragments, int count, int current_id, 
          int (*next_ids)[MAX_FRAGS], int *next_count,
          int *current_chain, int current_len, 
          int *best_chain, int *max_len, clock_t start_time, int *time_out);
+
+
+
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -50,17 +55,28 @@ int main(int argc, char *argv[]) {
 
     double elapsed = (double)(t_end - t_start) / CLOCKS_PER_SEC;
 
+    int total_digits = 0;
+
     printf("\nExecution time: %.3f seconds\n", elapsed);
     printf("Found longest chain of length %d!\n", max_len);
-    for (int i = 0; i < max_len; i++) {
-        int id = best_chain[i];
-        printf("%s ", fragments[id].full);
+
+    if (max_len > 0) {
+        total_digits += printf("%s", fragments[best_chain[0]].full);
+
+        for (int i = 1; i < max_len; i++) {
+            int id = best_chain[i];
+            total_digits += printf("%s", &fragments[id].full[2]);       
+        }
+        printf("\n");
     }
-    printf("\n");
+
+
+   
+    printf("Total digits in puzzle: %d\n", total_digits);
+
 
     free(best_chain);
     free(fragments);
-    printf("Loaded %d fragments successfully.\n", count);
     return 0;
 }
 
@@ -152,7 +168,6 @@ void do_puzzle(Fragment *fragments, int count, int *best_chain, int *out_max_len
         }
     }
 
-    // 3. Жадібне сортування кандидатів
     for (int i = 0; i < count; i++) {
         for (int a = 0; a < next_count[i] - 1; a++) {
             for (int b = a + 1; b < next_count[i]; b++) {
